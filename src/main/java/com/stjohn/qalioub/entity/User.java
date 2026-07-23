@@ -19,6 +19,9 @@ public class User {
     @Column(nullable = false)
     private boolean firstLogin = true;
 
+    @Column(nullable = false)
+    private String role = "USER";
+
     public User() {}
 
     public Long getId() { return id; }
@@ -32,4 +35,7 @@ public class User {
 
     public boolean isFirstLogin() { return firstLogin; }
     public void setFirstLogin(boolean firstLogin) { this.firstLogin = firstLogin; }
+
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 }

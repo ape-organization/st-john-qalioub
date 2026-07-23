@@ -12,6 +12,10 @@ tags:
     description: Authentication endpoints
   - name: User
     description: User profile endpoints
+  - name: Seat
+    description: Theatre seat endpoints
+  - name: Admin
+    description: Admin reservation management
 
 paths:
   /auth/request-otp:
@@ -100,6 +104,111 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /seats/reserve:
+    post:
+      tags:
+        - Seat
+      operationId: reserveSeats
+      summary: Reserve a list of theatre seats with status PENDING for 2 hours
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReserveSeatsRequest'
+      responses:
+        '200':
+          description: Seats reserved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationDto'
+        '400':
+          description: One or more seats are already reserved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+
+  /seats/reserved:
+    get:
+      tags:
+        - Seat
+      operationId: getReservedSeats
+      summary: Get all reserved seats (PENDING or CONFIRMED)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of reserved seats
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SeatDto'
+        '401':
+          description: Unauthorized
+
+  /admin/reservations:
+    get:
+      tags:
+        - Admin
+      operationId: getAllReservations
+      summary: Admin - retrieve all reservations with seats
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: All reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservationDto'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /admin/reservations/{id}/confirm:
+    post:
+      tags:
+        - Admin
+      operationId: confirmReservation
+      summary: Admin - confirm a pending reservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Reservation confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationDto'
+        '400':
+          description: Reservation not found or not confirmable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
 components:
   securitySchemes:
     bearerAuth:
@@ -156,6 +265,51 @@ components:
           type: string
         firstLogin:
           type: boolean
+
+    SeatDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        label:
+          type: string
+        status:
+          type: string
+          enum: [AVAILABLE, PENDING, CONFIRMED]
+
+    ReservationDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED]
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        seats:
+          type: array
+          items:
+            $ref: '#/components/schemas/SeatDto'
+        user:
+          $ref: '#/components/schemas/UserDto'
+
+    ReserveSeatsRequest:
+      type: object
+      required:
+        - seatLabels
+      properties:
+        seatLabels:
+          type: array
+          items:
+            type: string
+          example: ["STAGE-A11", "STAGE-A13"]
 
     UpdateNameRequest:
       type: object
