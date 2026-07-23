@@ -1,0 +1,13 @@
+.openapi-generator-ignore
+README.md
+pom.xml
+src/main/java/com/stjohn/qalioub/api/ApiUtil.java
+src/main/java/com/stjohn/qalioub/api/AuthApi.java
+src/main/java/com/stjohn/qalioub/api/UserApi.java
+src/main/java/com/stjohn/qalioub/api/model/AuthResponse.java
+src/main/java/com/stjohn/qalioub/api/model/ErrorResponse.java
+src/main/java/com/stjohn/qalioub/api/model/MessageResponse.java
+src/main/java/com/stjohn/qalioub/api/model/OtpRequest.java
+src/main/java/com/stjohn/qalioub/api/model/OtpVerifyRequest.java
+src/main/java/com/stjohn/qalioub/api/model/UpdateNameRequest.java
+src/main/java/com/stjohn/qalioub/api/model/UserDto.java
