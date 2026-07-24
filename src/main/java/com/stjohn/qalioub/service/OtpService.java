@@ -31,7 +31,7 @@ public class OtpService {
         this.whatsAppService = whatsAppService;
     }
 
-    public void generateAndSend(String phone) {
+    public String generateAndSend(String phone) {
         otpRepository.invalidateAllForPhone(phone);
 
         String otp = generateOtp();
@@ -48,6 +48,7 @@ public class OtpService {
         log.info("========================================");
 
         whatsAppService.sendOtp(phone, otp);
+        return otp;
     }
 
     public boolean verify(String phone, String otp) {

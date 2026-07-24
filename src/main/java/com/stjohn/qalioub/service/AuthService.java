@@ -21,14 +21,14 @@ public class AuthService {
     /**
      * Creates or updates the user record, then triggers OTP generation and sending.
      */
-    public void requestOtp(String phone) {
+    public String requestOtp(String phone) {
         // Find existing user or create new one
         User user = userRepository.findByPhone(phone).orElseGet(User::new);
         user.setPhone(phone);
         userRepository.save(user);
 
         // Generate OTP and send to WhatsApp
-        otpService.generateAndSend(phone);
+        return otpService.generateAndSend(phone);
     }
 
     /**
