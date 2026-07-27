@@ -16,7 +16,7 @@ public class OtpService {
     private static final Logger log = LoggerFactory.getLogger(OtpService.class);
 
     private final OtpRepository otpRepository;
-    private final WhatsAppService whatsAppService;
+    private final SmsService smsService;
 
     @Value("${app.otp.expiration-minutes}")
     private int expirationMinutes;
@@ -26,9 +26,9 @@ public class OtpService {
 
     private final SecureRandom random = new SecureRandom();
 
-    public OtpService(OtpRepository otpRepository, WhatsAppService whatsAppService) {
+    public OtpService(OtpRepository otpRepository, SmsService smsService) {
         this.otpRepository = otpRepository;
-        this.whatsAppService = whatsAppService;
+        this.smsService = smsService;
     }
 
     public String generateAndSend(String phone) {
@@ -47,7 +47,7 @@ public class OtpService {
         log.info("  OTP for {}: {}", phone, otp);
         log.info("========================================");
 
-        whatsAppService.sendOtp(phone, otp);
+        smsService.sendOtp(phone, otp);
         return otp;
     }
 

@@ -265,6 +265,10 @@ components:
           type: string
         firstLogin:
           type: boolean
+        role:
+          type: string
+          enum: [USER, ADMIN]
+          description: Role assigned to the user
 
     SeatDto:
       type: object
