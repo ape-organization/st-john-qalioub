@@ -38,24 +38,24 @@ public class DataInitializer implements ApplicationRunner {
     // Seat labels: "STAGE-B1", "STAGE-B11", "STAGE-B12", etc.
     private void seedStageSeats() {
         //              row   centerEnd  leftOddStart  leftOddEnd  rightEvenStart  rightEvenEnd
-        seedStageRow("A",  0,    11, 21,  10, 26);   // no center; 15 seats
-        seedStageRow("B", 10,    11, 23,  12, 26);   // 25 seats
-        seedStageRow("C",  9,    11, 25,  10, 28);   // 27 seats
-        seedStageRow("D", 10,    11, 25,  12, 26);   // 26 seats
-        seedStageRow("E",  9,    11, 27,  10, 26);   // 27 seats
-        seedStageRow("F", 10,    11, 27,  12, 26);   // 27 seats
-        seedStageRow("G",  9,    11, 27,  10, 26);   // 27 seats
-        seedStageRow("H", 10,    11, 27,  12, 28);   // 28 seats
-        seedStageRow("I",  9,    11, 27,  10, 28);   // 28 seats
-        seedStageRow("J",  9,    11, 29,  10, 28);   // 29 seats
-        seedStageRow("K",  9,    11, 29,  10, 28);   // 29 seats
-        seedStageRow("L",  8,    11, 29,  10, 28);   // 28 seats
-        seedStageRow("M",  9,    11, 29,  10, 28);   // 29 seats
-        seedStageRow("N",  9,    11, 31,  10, 30);   // 31 seats
-        seedStageRow("O",  9,    11, 31,  10, 30);   // 31 seats
-        seedStageRow("P",  9,    11, 31,  10, 30);   // 31 seats
-        seedStageRow("Q",  9,    11, 31,  10, 30);   // 31 seats
-        seedStageRow("R",  0,     1, 19,   2, 20);   // no center; odd 1-19 + even 2-20; 20 seats
+        seedStageRow("A", 0, 11, 21, 10, 26);   // no center; 15 seats
+        seedStageRow("B", 10, 11, 23, 12, 26);   // 25 seats
+        seedStageRow("C", 9, 11, 25, 10, 28);   // 27 seats
+        seedStageRow("D", 10, 11, 25, 12, 26);   // 26 seats
+        seedStageRow("E", 9, 11, 27, 10, 26);   // 27 seats
+        seedStageRow("F", 10, 11, 27, 12, 26);   // 27 seats
+        seedStageRow("G", 9, 11, 27, 10, 26);   // 27 seats
+        seedStageRow("H", 10, 11, 27, 12, 28);   // 28 seats
+        seedStageRow("I", 9, 11, 27, 10, 28);   // 28 seats
+        seedStageRow("J", 9, 11, 29, 10, 28);   // 29 seats
+        seedStageRow("K", 9, 11, 29, 10, 28);   // 29 seats
+        seedStageRow("L", 8, 11, 29, 10, 28);   // 28 seats
+        seedStageRow("M", 9, 11, 29, 10, 28);   // 29 seats
+        seedStageRow("N", 9, 11, 31, 10, 30);   // 31 seats
+        seedStageRow("O", 9, 11, 31, 10, 30);   // 31 seats
+        seedStageRow("P", 9, 11, 31, 10, 30);   // 31 seats
+        seedStageRow("Q", 9, 11, 31, 10, 30);   // 31 seats
+        seedStageRow("R", 0, 1, 19, 2, 20);   // no center; odd 1-19 + even 2-20; 20 seats
     }
 
     /**
@@ -66,8 +66,8 @@ public class DataInitializer implements ApplicationRunner {
      * @param rightEvenEnd   last even seat number in the right wing
      */
     private void seedStageRow(String row, int centerEnd,
-                               int leftOddStart, int leftOddEnd,
-                               int rightEvenStart, int rightEvenEnd) {
+                              int leftOddStart, int leftOddEnd,
+                              int rightEvenStart, int rightEvenEnd) {
         List<Seat> seats = new ArrayList<>();
         for (int i = 1; i <= centerEnd; i++) {
             seats.add(new Seat("STAGE-" + row + i));
@@ -99,29 +99,27 @@ public class DataInitializer implements ApplicationRunner {
 
     // ── Admin Users ──────────────────────────────────────────────────────────
     private void seedAdminUsers() {
-        createAdminIfNotExists("مايكل عبدالمسيح", "01203813184");
-        createAdminIfNotExists("ايريني كرم", "01211849330");
-        createSuperAdminIfNotExists("بولا ناصر صموئيل", "01202296329");
+        createAdminIfNotExists("01203813184");
+        createAdminIfNotExists("01211849330");
+        createSuperAdminIfNotExists("01202296329");
     }
 
-    private void createAdminIfNotExists(String name, String phone) {
+    private void createAdminIfNotExists(String phone) {
         if (userRepository.findByPhone(phone).isEmpty()) {
             User admin = new User();
-            admin.setName(name);
             admin.setPhone(phone);
             admin.setRole("ADMIN");
-            admin.setFirstLogin(false);
+            admin.setFirstLogin(true);
             userRepository.save(admin);
         }
     }
 
-    private void createSuperAdminIfNotExists(String name, String phone) {
+    private void createSuperAdminIfNotExists(String phone) {
         if (userRepository.findByPhone(phone).isEmpty()) {
             User superAdmin = new User();
-            superAdmin.setName(name);
             superAdmin.setPhone(phone);
             superAdmin.setRole("SUPER_ADMIN");
-            superAdmin.setFirstLogin(false);
+            superAdmin.setFirstLogin(true);
             userRepository.save(superAdmin);
         }
     }
