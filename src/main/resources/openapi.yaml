@@ -104,6 +104,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /user/reservations:
+    get:
+      tags:
+        - User
+      operationId: getUserReservations
+      summary: Get all reservations for the authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of user reservations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservationDto'
+        '401':
+          description: Unauthorized
+
   /seats/reserve:
     post:
       tags:

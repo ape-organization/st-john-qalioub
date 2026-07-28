@@ -1,7 +1,9 @@
 package com.stjohn.qalioub.config;
 
 import com.stjohn.qalioub.entity.Seat;
+import com.stjohn.qalioub.entity.User;
 import com.stjohn.qalioub.repository.SeatRepository;
+import com.stjohn.qalioub.repository.UserRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -13,9 +15,11 @@ import java.util.List;
 public class DataInitializer implements ApplicationRunner {
 
     private final SeatRepository seatRepository;
+    private final UserRepository userRepository;
 
-    public DataInitializer(SeatRepository seatRepository) {
+    public DataInitializer(SeatRepository seatRepository, UserRepository userRepository) {
         this.seatRepository = seatRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -24,6 +28,7 @@ public class DataInitializer implements ApplicationRunner {
             seedStageSeats();
             seedBalconySeats();
         }
+        seedAdminUsers();
     }
 
     // ── Stage ────────────────────────────────────────────────────────────────
@@ -88,5 +93,22 @@ public class DataInitializer implements ApplicationRunner {
             seats.add(new Seat("BAL-" + row + i));
         }
         seatRepository.saveAll(seats);
+    }
+
+    // ── Admin Users ──────────────────────────────────────────────────────────
+    private void seedAdminUsers() {
+        createAdminIfNotExists("مايكل عبدالمسيح", "01203813184");
+        createAdminIfNotExists("ايريني كرم", "01211849330");
+    }
+
+    private void createAdminIfNotExists(String name, String phone) {
+        if (userRepository.findByPhone(phone).isEmpty()) {
+            User admin = new User();
+            admin.setName(name);
+            admin.setPhone(phone);
+            admin.setRole("ADMIN");
+            admin.setFirstLogin(false);
+            userRepository.save(admin);
+        }
     }
 }

@@ -44,4 +44,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
                OR (r.status = com.stjohn.qalioub.entity.Reservation.Status.PENDING AND r.expiresAt > :now))
         """)
     List<Reservation> findActiveReservationsForSeats(@Param("seats") List<Seat> seats, @Param("now") LocalDateTime now);
+
+    @EntityGraph(attributePaths = {"seats", "user"})
+    @Query("""
+        SELECT r FROM Reservation r
+        WHERE r.user = :user
+          AND (r.status = com.stjohn.qalioub.entity.Reservation.Status.CONFIRMED
+               OR (r.status = com.stjohn.qalioub.entity.Reservation.Status.PENDING AND r.expiresAt > :now))
+        ORDER BY r.createdAt DESC
+        """)
+    List<Reservation> findActiveReservationsByUser(@Param("user") com.stjohn.qalioub.entity.User user, @Param("now") LocalDateTime now);
 }

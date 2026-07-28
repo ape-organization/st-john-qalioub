@@ -92,4 +92,9 @@ public class ReservationService {
                 .map(seat -> new SeatStatusEntry(seat, statusMap.get(seat.getId())))
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<Reservation> getUserReservations(User user) {
+        return reservationRepository.findActiveReservationsByUser(user, LocalDateTime.now());
+    }
 }
