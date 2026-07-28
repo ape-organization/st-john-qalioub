@@ -23,7 +23,7 @@ public class User {
     @Column(nullable = false)
     private String role = "USER";
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "numeric(38,2) default 0")
     private BigDecimal balance = BigDecimal.ZERO;
 
     public User() {}
