@@ -5,9 +5,12 @@ import com.stjohn.qalioub.entity.Seat;
 import com.stjohn.qalioub.entity.User;
 import com.stjohn.qalioub.repository.ReservationRepository;
 import com.stjohn.qalioub.repository.SeatRepository;
+import com.stjohn.qalioub.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -22,10 +25,17 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final SeatRepository seatRepository;
+    private final UserRepository userRepository;
 
-    public ReservationService(ReservationRepository reservationRepository, SeatRepository seatRepository) {
+    @Value("${app.ticket.price}")
+    private BigDecimal ticketPrice;
+
+    public ReservationService(ReservationRepository reservationRepository,
+                              SeatRepository seatRepository,
+                              UserRepository userRepository) {
         this.reservationRepository = reservationRepository;
         this.seatRepository = seatRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -62,7 +72,7 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation confirmReservation(Long id) {
+    public Reservation confirmReservation(Long id, Long adminId) {
         Reservation reservation = reservationRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + id));
 
@@ -73,13 +83,20 @@ public class ReservationService {
             throw new IllegalStateException("Reservation has expired");
         }
 
+        BigDecimal amount = ticketPrice.multiply(BigDecimal.valueOf(reservation.getSeats().size()));
+
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new IllegalArgumentException("Admin not found: " + adminId));
+        admin.setBalance(admin.getBalance().add(amount));
+        userRepository.save(admin);
+
+        reservation.setTotalAmount(amount);
         reservation.setStatus(Reservation.Status.CONFIRMED);
         return reservationRepository.save(reservation);
     }
 
     @Transactional(readOnly = true)
     public List<SeatStatusEntry> getAllSeatsWithStatus() {
-        // Build seatId → active reservation status map (CONFIRMED takes priority over PENDING)
         Map<Long, Reservation.Status> statusMap = new LinkedHashMap<>();
         reservationRepository.findActiveReservations(LocalDateTime.now()).forEach(r ->
             r.getSeats().forEach(s ->

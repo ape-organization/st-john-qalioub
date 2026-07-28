@@ -55,6 +55,8 @@ public class AuthController implements AuthApi {
         dto.setName(user.getName());
         dto.setPhone(user.getPhone());
         dto.setFirstLogin(user.isFirstLogin());
+        dto.setRole(UserDto.RoleEnum.valueOf(user.getRole()));
+        dto.setBalance(user.getBalance());
         return dto;
     }
 }

@@ -1,6 +1,7 @@
 package com.stjohn.qalioub.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "users")
@@ -22,6 +23,9 @@ public class User {
     @Column(nullable = false)
     private String role = "USER";
 
+    @Column(nullable = false)
+    private BigDecimal balance = BigDecimal.ZERO;
+
     public User() {}
 
     public Long getId() { return id; }
@@ -38,4 +42,7 @@ public class User {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    public BigDecimal getBalance() { return balance; }
+    public void setBalance(BigDecimal balance) { this.balance = balance; }
 }

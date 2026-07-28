@@ -41,6 +41,7 @@ public class SecurityConfig {
                     "/api-docs/**"
                 ).permitAll()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/super-admin/**").hasRole("SUPER_ADMIN")
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )

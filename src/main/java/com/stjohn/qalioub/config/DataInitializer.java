@@ -4,6 +4,7 @@ import com.stjohn.qalioub.entity.Seat;
 import com.stjohn.qalioub.entity.User;
 import com.stjohn.qalioub.repository.SeatRepository;
 import com.stjohn.qalioub.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import java.util.List;
 
 @Component
 public class DataInitializer implements ApplicationRunner {
+
 
     private final SeatRepository seatRepository;
     private final UserRepository userRepository;
@@ -99,6 +101,7 @@ public class DataInitializer implements ApplicationRunner {
     private void seedAdminUsers() {
         createAdminIfNotExists("مايكل عبدالمسيح", "01203813184");
         createAdminIfNotExists("ايريني كرم", "01211849330");
+        createSuperAdminIfNotExists("بولا ناصر صموئيل", "01202296329");
     }
 
     private void createAdminIfNotExists(String name, String phone) {
@@ -109,6 +112,17 @@ public class DataInitializer implements ApplicationRunner {
             admin.setRole("ADMIN");
             admin.setFirstLogin(false);
             userRepository.save(admin);
+        }
+    }
+
+    private void createSuperAdminIfNotExists(String name, String phone) {
+        if (userRepository.findByPhone(phone).isEmpty()) {
+            User superAdmin = new User();
+            superAdmin.setName(name);
+            superAdmin.setPhone(phone);
+            superAdmin.setRole("SUPER_ADMIN");
+            superAdmin.setFirstLogin(false);
+            userRepository.save(superAdmin);
         }
     }
 }

@@ -16,6 +16,8 @@ tags:
     description: Theatre seat endpoints
   - name: Admin
     description: Admin reservation management
+  - name: SuperAdmin
+    description: Super Admin management
 
 paths:
   /auth/request-otp:
@@ -229,6 +231,113 @@ paths:
         '403':
           description: Forbidden
 
+  /admin/balance:
+    get:
+      tags:
+        - Admin
+      operationId: getAdminBalance
+      summary: Admin - get current balance earned from confirmed reservations
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Admin balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /admin/transfers:
+    post:
+      tags:
+        - Admin
+      operationId: createTransfer
+      summary: Admin - create a transfer to super admin
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTransferRequest'
+      responses:
+        '200':
+          description: Transfer created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferDto'
+        '400':
+          description: Invalid amount or insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /super-admin/transfers:
+    get:
+      tags:
+        - SuperAdmin
+      operationId: getAllTransfers
+      summary: Super Admin - get all transfers from admins
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of all transfers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TransferDto'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /super-admin/transfers/{id}/confirm:
+    post:
+      tags:
+        - SuperAdmin
+      operationId: confirmTransfer
+      summary: Super Admin - confirm a pending transfer
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Transfer confirmed, money moved from admin to super admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferDto'
+        '400':
+          description: Transfer not found or not confirmable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
 components:
   securitySchemes:
     bearerAuth:
@@ -287,8 +396,11 @@ components:
           type: boolean
         role:
           type: string
-          enum: [USER, ADMIN]
+          enum: [USER, ADMIN, SUPER_ADMIN]
           description: Role assigned to the user
+        balance:
+          type: number
+          description: Current balance (applicable to admin and super admin users)
 
     SeatDto:
       type: object
@@ -317,6 +429,9 @@ components:
         createdAt:
           type: string
           format: date-time
+        totalAmount:
+          type: number
+          description: Total amount charged (ticketPrice × seats count), set on confirmation
         seats:
           type: array
           items:
@@ -358,3 +473,36 @@ components:
           type: string
         message:
           type: string
+
+    TransferDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        admin:
+          $ref: '#/components/schemas/UserDto'
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED]
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateTransferRequest:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: number
+          description: Amount to transfer to super admin
+
+    BalanceResponse:
+      type: object
+      properties:
+        balance:
+          type: number
+          description: Current balance

@@ -71,6 +71,7 @@ public class SeatController implements SeatApi {
                 .map(s -> toSeatDto(s, reservation.getStatus()))
                 .toList());
         dto.setUser(AuthController.toDto(reservation.getUser()));
+        dto.setTotalAmount(reservation.getTotalAmount());
         return dto;
     }
 }

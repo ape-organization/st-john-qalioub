@@ -13,6 +13,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -48,6 +49,9 @@ public class Reservation {
     @Column(nullable = false)
     private LocalDateTime expiresAt;
 
+    @Column(nullable = true)
+    private BigDecimal totalAmount;
+
     public Reservation() {}
 
     public Long getId() { return id; }
@@ -67,4 +71,7 @@ public class Reservation {
 
     public LocalDateTime getExpiresAt() { return expiresAt; }
     public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
 }
