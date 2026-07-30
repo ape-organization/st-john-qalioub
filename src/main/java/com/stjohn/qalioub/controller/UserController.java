@@ -26,6 +26,12 @@ public class UserController implements UserApi {
     }
 
     @Override
+    public ResponseEntity<UserDto> getMe() {
+        User principal = getAuthenticatedUser();
+        return ResponseEntity.ok(AuthController.toDto(principal));
+    }
+
+    @Override
     public ResponseEntity<UserDto> updateName(UpdateNameRequest updateNameRequest) {
         // The authenticated user is injected by Spring Security via JwtAuthFilter
         User principal = getAuthenticatedUser();
