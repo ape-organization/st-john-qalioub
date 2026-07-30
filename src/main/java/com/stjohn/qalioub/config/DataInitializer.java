@@ -99,10 +99,20 @@ public class DataInitializer implements ApplicationRunner {
 
     // ── Admin Users ──────────────────────────────────────────────────────────
     private void seedAdminUsers() {
-        createAdminIfNotExists("01203813184");
-        createAdminIfNotExists("01211849330");
-        createAdminIfNotExists("01203996663");
+        //mr michael hanna
+        createSuperAdminIfNotExists("01203813184");
+        //bola nasser
         createSuperAdminIfNotExists("01202296329");
+        //eriny karam
+        createAdminIfNotExists("01211849330");
+        //Andrew Kadry
+        createAdminIfNotExists("01203996663");
+        //peter maher
+        createAdminIfNotExists("01070382811");
+        //gerges mousa
+        createAdminIfNotExists("01068047342");
+        //michael saad
+        createAdminIfNotExists("01091587701");
     }
 
     private void createAdminIfNotExists(String phone) {
