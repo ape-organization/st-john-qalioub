@@ -101,6 +101,7 @@ public class DataInitializer implements ApplicationRunner {
     private void seedAdminUsers() {
         createAdminIfNotExists("01203813184");
         createAdminIfNotExists("01211849330");
+        createAdminIfNotExists("01203996663");
         createSuperAdminIfNotExists("01202296329");
     }
 
