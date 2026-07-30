@@ -55,6 +55,9 @@ public class Reservation {
     @Column(nullable = true, columnDefinition = "NVARCHAR(MAX)")
     private String notes;
 
+    @Column(nullable = true, length = 1024)
+    private String paymentLink;
+
     public Reservation() {}
 
     public Long getId() { return id; }
@@ -80,4 +83,7 @@ public class Reservation {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public String getPaymentLink() { return paymentLink; }
+    public void setPaymentLink(String paymentLink) { this.paymentLink = paymentLink; }
 }

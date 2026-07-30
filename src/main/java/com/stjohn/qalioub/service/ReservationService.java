@@ -1,5 +1,6 @@
 package com.stjohn.qalioub.service;
 
+import com.stjohn.qalioub.config.AdminProfile;
 import com.stjohn.qalioub.entity.Reservation;
 import com.stjohn.qalioub.entity.Seat;
 import com.stjohn.qalioub.entity.User;
@@ -11,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -64,6 +67,12 @@ public class ReservationService {
         reservation.setExpiresAt(now.plusHours(4));
         reservation.setNotes(notes);
 
+        reservation = reservationRepository.save(reservation);
+
+        AdminProfile admin = AdminProfile.values()[(int)(reservation.getId() % AdminProfile.values().length)];
+        BigDecimal amount = ticketPrice.multiply(BigDecimal.valueOf(seats.size()));
+        reservation.setPaymentLink(buildPaymentLink(reservation.getId(), admin, amount, seats.size()));
+
         return reservationRepository.save(reservation);
     }
 
@@ -114,5 +123,18 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public List<Reservation> getUserReservations(User user) {
         return reservationRepository.findActiveReservationsByUser(user, LocalDateTime.now());
+    }
+
+    private String buildPaymentLink(Long reservationId, AdminProfile admin, BigDecimal amount, int seatCount) {
+        String message = String.format(
+            "هاي %s\nبكلمك عشان احجز مسرحية الصارخ حجز رقم %d\nهبعتلك دلوقتي %s جنيه على اللينك ده %s\nعشان احجز عدد %d كرسي\nشكرا لتعبك",
+            admin.getDisplayName(),
+            reservationId,
+            amount.stripTrailingZeros().toPlainString(),
+            admin.getInstapayLink(),
+            seatCount
+        );
+        String encoded = URLEncoder.encode(message, StandardCharsets.UTF_8);
+        return "https://wa.me/" + admin.getWhatsappPhone() + "?text=" + encoded;
     }
 }

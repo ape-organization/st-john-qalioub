@@ -435,6 +435,9 @@ components:
         notes:
           type: string
           description: Notes in Arabic for the reservation
+        paymentLink:
+          type: string
+          description: WhatsApp link to contact the assigned admin with payment details
         seats:
           type: array
           items:
