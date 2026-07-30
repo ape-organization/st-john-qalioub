@@ -52,6 +52,9 @@ public class Reservation {
     @Column(nullable = true)
     private BigDecimal totalAmount;
 
+    @Column(nullable = true, columnDefinition = "NVARCHAR(MAX)")
+    private String notes;
+
     public Reservation() {}
 
     public Long getId() { return id; }
@@ -74,4 +77,7 @@ public class Reservation {
 
     public BigDecimal getTotalAmount() { return totalAmount; }
     public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
+
+    public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
 }

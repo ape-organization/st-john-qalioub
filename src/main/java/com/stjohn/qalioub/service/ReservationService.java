@@ -39,7 +39,7 @@ public class ReservationService {
     }
 
     @Transactional
-    public Reservation reserveSeats(User user, List<String> seatLabels) {
+    public Reservation reserveSeats(User user, List<String> seatLabels, String notes) {
         if (seatLabels == null || seatLabels.isEmpty()) {
             throw new IllegalArgumentException("At least one seat must be selected");
         }
@@ -62,6 +62,7 @@ public class ReservationService {
         reservation.setStatus(Reservation.Status.PENDING);
         reservation.setCreatedAt(now);
         reservation.setExpiresAt(now.plusHours(4));
+        reservation.setNotes(notes);
 
         return reservationRepository.save(reservation);
     }

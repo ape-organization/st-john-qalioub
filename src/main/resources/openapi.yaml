@@ -432,6 +432,9 @@ components:
         totalAmount:
           type: number
           description: Total amount charged (ticketPrice × seats count), set on confirmation
+        notes:
+          type: string
+          description: Notes in Arabic for the reservation
         seats:
           type: array
           items:
@@ -449,6 +452,9 @@ components:
           items:
             type: string
           example: ["STAGE-A11", "STAGE-A13"]
+        notes:
+          type: string
+          description: Optional notes in Arabic for the reservation
 
     UpdateNameRequest:
       type: object

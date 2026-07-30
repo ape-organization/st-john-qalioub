@@ -31,7 +31,7 @@ public class SeatController implements SeatApi {
     public ResponseEntity<ReservationDto> reserveSeats(ReserveSeatsRequest reserveSeatsRequest) {
         User user = getAuthenticatedUser();
         try {
-            Reservation reservation = reservationService.reserveSeats(user, reserveSeatsRequest.getSeatLabels());
+            Reservation reservation = reservationService.reserveSeats(user, reserveSeatsRequest.getSeatLabels(), reserveSeatsRequest.getNotes());
             return ResponseEntity.ok(toReservationDto(reservation));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().build();
@@ -72,6 +72,7 @@ public class SeatController implements SeatApi {
                 .toList());
         dto.setUser(AuthController.toDto(reservation.getUser()));
         dto.setTotalAmount(reservation.getTotalAmount());
+        dto.setNotes(reservation.getNotes());
         return dto;
     }
 }
