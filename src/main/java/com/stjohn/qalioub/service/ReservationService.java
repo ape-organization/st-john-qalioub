@@ -61,7 +61,7 @@ public class ReservationService {
         reservation.setSeats(seats);
         reservation.setStatus(Reservation.Status.PENDING);
         reservation.setCreatedAt(now);
-        reservation.setExpiresAt(now.plusHours(2));
+        reservation.setExpiresAt(now.plusHours(4));
 
         return reservationRepository.save(reservation);
     }
