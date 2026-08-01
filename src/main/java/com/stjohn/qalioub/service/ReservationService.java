@@ -71,7 +71,7 @@ public class ReservationService {
 
         AdminProfile admin = AdminProfile.values()[(int)(reservation.getId() % AdminProfile.values().length)];
         BigDecimal amount = ticketPrice.multiply(BigDecimal.valueOf(seats.size()));
-        reservation.setPaymentLink(buildPaymentLink(reservation.getId(), admin, amount, seats.size()));
+        reservation.setPaymentLink(buildPaymentLink(reservation.getId(), admin, amount, user, seats));
 
         return reservationRepository.save(reservation);
     }
@@ -125,14 +125,15 @@ public class ReservationService {
         return reservationRepository.findActiveReservationsByUser(user, LocalDateTime.now());
     }
 
-    private String buildPaymentLink(Long reservationId, AdminProfile admin, BigDecimal amount, int seatCount) {
+    private String buildPaymentLink(Long reservationId, AdminProfile admin, BigDecimal amount, User user, List<Seat> seats) {
+        String seatLabels = seats.stream().map(Seat::getLabel).collect(java.util.stream.Collectors.joining(", "));
         String message = String.format(
-            "هاي %s\nبكلمك عشان احجز مسرحية الصارخ حجز رقم %d\nهبعتلك دلوقتي %s جنيه على اللينك ده %s\nعشان احجز عدد %d كرسي\nشكرا لتعبك",
-            admin.getDisplayName(),
-            reservationId,
+            "هاي انا\n%s\nبكلمك عشان احجز مسرحية الصارخ عاوز ابعتلك دلوقتي %s جنيه\nعشان احجز عدد %d كرسي\n(%s)\nحجز رقم %d\nشكرا",
+            user.getName(),
             amount.stripTrailingZeros().toPlainString(),
-            admin.getInstapayLink(),
-            seatCount
+            seats.size(),
+            seatLabels,
+            reservationId
         );
         String encoded = URLEncoder.encode(message, StandardCharsets.UTF_8);
         return "https://wa.me/" + admin.getWhatsappPhone() + "?text=" + encoded;
