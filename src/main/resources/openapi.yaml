@@ -460,6 +460,9 @@ components:
         paymentLink:
           type: string
           description: WhatsApp link to contact the assigned admin with payment details
+        confirmedBy:
+          type: string
+          description: Name of the admin who confirmed the reservation, empty if not yet confirmed
         seats:
           type: array
           items:

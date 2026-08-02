@@ -58,6 +58,9 @@ public class Reservation {
     @Column(nullable = true, length = 1024)
     private String paymentLink;
 
+    @Column(nullable = true, columnDefinition = "NVARCHAR(255)")
+    private String confirmedBy;
+
     public Reservation() {}
 
     public Long getId() { return id; }
@@ -86,4 +89,7 @@ public class Reservation {
 
     public String getPaymentLink() { return paymentLink; }
     public void setPaymentLink(String paymentLink) { this.paymentLink = paymentLink; }
+
+    public String getConfirmedBy() { return confirmedBy; }
+    public void setConfirmedBy(String confirmedBy) { this.confirmedBy = confirmedBy; }
 }

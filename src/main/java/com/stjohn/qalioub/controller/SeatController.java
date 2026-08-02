@@ -74,6 +74,7 @@ public class SeatController implements SeatApi {
         dto.setTotalAmount(reservation.getTotalAmount());
         dto.setNotes(reservation.getNotes());
         dto.setPaymentLink(reservation.getPaymentLink());
+        dto.setConfirmedBy(reservation.getConfirmedBy());
         return dto;
     }
 }

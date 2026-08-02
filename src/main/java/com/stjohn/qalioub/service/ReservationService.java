@@ -102,6 +102,7 @@ public class ReservationService {
 
         reservation.setTotalAmount(amount);
         reservation.setStatus(Reservation.Status.CONFIRMED);
+        reservation.setConfirmedBy(admin.getName());
         return reservationRepository.save(reservation);
     }
 
