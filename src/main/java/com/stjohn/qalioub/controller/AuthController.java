@@ -24,10 +24,10 @@ public class AuthController implements AuthApi {
 
     @Override
     public ResponseEntity<MessageResponse> requestOtp(OtpRequest otpRequest) {
-        String otp = authService.requestOtp(otpRequest.getPhone());
+        authService.requestOtp(otpRequest.getPhone());
 
         MessageResponse response = new MessageResponse();
-        response.setMessage("OTP: "+ otp + " sent to WhatsApp number " + otpRequest.getPhone());
+        response.setMessage("OTP sent to WhatsApp number " + otpRequest.getPhone());
         return ResponseEntity.ok(response);
     }
 

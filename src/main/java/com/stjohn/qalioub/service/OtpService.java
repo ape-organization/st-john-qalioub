@@ -31,7 +31,7 @@ public class OtpService {
         this.smsService = smsService;
     }
 
-    public String generateAndSend(String phone) {
+    public void generateAndSend(String phone) {
         otpRepository.invalidateAllForPhone(phone);
 
         String otp = generateOtp();
@@ -43,12 +43,7 @@ public class OtpService {
         record.setUsed(false);
         otpRepository.save(record);
 
-        log.info("========================================");
-        log.info("  OTP for {}: {}", phone, otp);
-        log.info("========================================");
-
         smsService.sendOtp(phone, otp);
-        return otp;
     }
 
     public boolean verify(String phone, String otp) {

@@ -64,6 +64,9 @@ public class Reservation {
     @Column(nullable = true, columnDefinition = "NVARCHAR(255)")
     private String assignedTo;
 
+    @Column(nullable = true, unique = true, length = 64)
+    private String ticketToken;
+
     public Reservation() {}
 
     public Long getId() { return id; }
@@ -98,4 +101,7 @@ public class Reservation {
 
     public String getAssignedTo() { return assignedTo; }
     public void setAssignedTo(String assignedTo) { this.assignedTo = assignedTo; }
+
+    public String getTicketToken() { return ticketToken; }
+    public void setTicketToken(String ticketToken) { this.ticketToken = ticketToken; }
 }

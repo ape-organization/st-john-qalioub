@@ -18,6 +18,8 @@ tags:
     description: Admin reservation management
   - name: SuperAdmin
     description: Super Admin management
+  - name: Public
+    description: Public endpoints (no authentication required)
 
 paths:
   /auth/request-otp:
@@ -327,6 +329,32 @@ paths:
         '403':
           description: Forbidden
 
+  /public/ticket/{token}:
+    get:
+      tags:
+        - Public
+      operationId: getTicketByToken
+      summary: Public - get reservation details by ticket token (for theatre entry verification)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Reservation details for the valid confirmed ticket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationDto'
+        '404':
+          description: Ticket not found or reservation not yet confirmed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /super-admin/transfers/{id}/confirm:
     post:
       tags:
@@ -466,6 +494,9 @@ components:
         assignedTo:
           type: string
           description: Name of the admin assigned to this reservation at creation time
+        ticketToken:
+          type: string
+          description: Unique HMAC-signed token for theatre entry verification (generated on confirmation)
         seats:
           type: array
           items:

@@ -54,4 +54,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
         ORDER BY r.createdAt DESC
         """)
     List<Reservation> findActiveReservationsByUser(@Param("user") com.stjohn.qalioub.entity.User user, @Param("now") LocalDateTime now);
+
+    @EntityGraph(attributePaths = {"user", "seats"})
+    Optional<Reservation> findByTicketToken(String ticketToken);
 }

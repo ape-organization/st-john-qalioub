@@ -11,11 +11,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,6 +37,9 @@ public class ReservationService {
 
     @Value("${app.ticket.price}")
     private BigDecimal ticketPrice;
+
+    @Value("${app.jwt.secret}")
+    private String jwtSecret;
 
     public ReservationService(ReservationRepository reservationRepository,
                               SeatRepository seatRepository,
@@ -104,6 +112,7 @@ public class ReservationService {
         reservation.setTotalAmount(amount);
         reservation.setStatus(Reservation.Status.CONFIRMED);
         reservation.setConfirmedBy(admin.getName());
+        reservation.setTicketToken(generateTicketToken(reservation.getId(), reservation.getUser().getId()));
         return reservationRepository.save(reservation);
     }
 
@@ -125,6 +134,24 @@ public class ReservationService {
     @Transactional(readOnly = true)
     public List<Reservation> getUserReservations(User user) {
         return reservationRepository.findActiveReservationsByUser(user, LocalDateTime.now());
+    }
+
+    @Transactional(readOnly = true)
+    public Reservation getReservationByTicketToken(String token) {
+        return reservationRepository.findByTicketToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid ticket token: " + token));
+    }
+
+    private String generateTicketToken(Long reservationId, Long userId) {
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(jwtSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            String payload = reservationId + ":" + userId;
+            byte[] hmacBytes = mac.doFinal(payload.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(hmacBytes);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new RuntimeException("Failed to generate ticket token", e);
+        }
     }
 
     private String buildPaymentLink(Long reservationId, AdminProfile admin, BigDecimal amount, User user, List<Seat> seats) {
