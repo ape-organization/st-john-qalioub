@@ -61,6 +61,9 @@ public class Reservation {
     @Column(nullable = true, columnDefinition = "NVARCHAR(255)")
     private String confirmedBy;
 
+    @Column(nullable = true, columnDefinition = "NVARCHAR(255)")
+    private String assignedTo;
+
     public Reservation() {}
 
     public Long getId() { return id; }
@@ -92,4 +95,7 @@ public class Reservation {
 
     public String getConfirmedBy() { return confirmedBy; }
     public void setConfirmedBy(String confirmedBy) { this.confirmedBy = confirmedBy; }
+
+    public String getAssignedTo() { return assignedTo; }
+    public void setAssignedTo(String assignedTo) { this.assignedTo = assignedTo; }
 }

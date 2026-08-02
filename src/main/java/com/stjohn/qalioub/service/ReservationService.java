@@ -71,6 +71,7 @@ public class ReservationService {
 
         AdminProfile admin = AdminProfile.values()[(int)(reservation.getId() % AdminProfile.values().length)];
         BigDecimal amount = ticketPrice.multiply(BigDecimal.valueOf(seats.size()));
+        reservation.setAssignedTo(admin.getDisplayName());
         reservation.setPaymentLink(buildPaymentLink(reservation.getId(), admin, amount, user, seats));
 
         return reservationRepository.save(reservation);

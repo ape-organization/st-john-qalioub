@@ -463,6 +463,9 @@ components:
         confirmedBy:
           type: string
           description: Name of the admin who confirmed the reservation, empty if not yet confirmed
+        assignedTo:
+          type: string
+          description: Name of the admin assigned to this reservation at creation time
         seats:
           type: array
           items:
