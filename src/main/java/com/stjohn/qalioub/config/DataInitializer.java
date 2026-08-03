@@ -38,24 +38,24 @@ public class DataInitializer implements ApplicationRunner {
     // Seat labels: "STAGE-B1", "STAGE-B11", "STAGE-B12", etc.
     private void seedStageSeats() {
         //              row   centerEnd  leftOddStart  leftOddEnd  rightEvenStart  rightEvenEnd
-        seedStageRow("A", 0, 11, 21, 10, 20);   // no center; 15 seats
-        seedStageRow("B", 10, 11, 23, 12, 24);   // 25 seats
-        seedStageRow("C", 9, 11, 25, 10, 22);   // 27 seats
-        seedStageRow("D", 10, 11, 25, 12, 26);   // 26 seats
-        seedStageRow("E", 9, 11, 25, 10, 24);   // 27 seats
-        seedStageRow("F", 10, 11, 27, 12, 28);   // 27 seats
-        seedStageRow("G", 9, 11, 27, 10, 26);   // 27 seats
-        seedStageRow("H", 10, 11, 27, 12, 28);   // 28 seats
-        seedStageRow("I", 9, 11, 27, 10, 26);   // 28 seats
-        seedStageRow("J", 9, 11, 29, 10, 28);   // 29 seats
-        seedStageRow("K", 9, 11, 29, 10, 28);   // 29 seats
-        seedStageRow("L", 9, 11, 29, 10, 28);   // 28 seats
-        seedStageRow("M", 9, 11, 29, 10, 28);   // 29 seats
-        seedStageRow("N", 9, 11, 31, 10, 30);   // 31 seats
-        seedStageRow("O", 9, 11, 31, 10, 30);   // 31 seats
-        seedStageRow("P", 9, 11, 31, 10, 30);   // 31 seats
-        seedStageRow("Q", 0, 11, 31, 10, 30);   // 31 seats
-        seedStageRow("R", 0, 1, 19, 2, 20);   // no center; odd 1-19 + even 2-20; 20 seats
+        seedStageRow("A", 0, 11, 21, 10, 20);
+        seedStageRow("B", 10, 11, 23, 12, 24);
+        seedStageRow("C", 9, 11, 23, 10, 22);
+        seedStageRow("D", 10, 11, 25, 12, 26);
+        seedStageRow("E", 9, 11, 25, 10, 24);
+        seedStageRow("F", 10, 11, 27, 12, 28);
+        seedStageRow("G", 9, 11, 27, 10, 26);
+        seedStageRow("H", 10, 11, 27, 12, 28);
+        seedStageRow("I", 9, 11, 27, 10, 26);
+        seedStageRow("J", 9, 11, 29, 10, 28);
+        seedStageRow("K", 9, 11, 29, 10, 28);
+        seedStageRow("L", 9, 11, 29, 10, 28);
+        seedStageRow("M", 9, 11, 29, 10, 28);
+        seedStageRow("N", 9, 11, 31, 10, 30);
+        seedStageRow("O", 9, 11, 31, 10, 30);
+        seedStageRow("P", 9, 11, 31, 10, 30);
+        seedStageRow("Q", 0, 11, 31, 10, 30);
+        seedStageRow("R", 0, 1, 23, 2, 24);
     }
 
     /**
