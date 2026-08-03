@@ -38,23 +38,23 @@ public class DataInitializer implements ApplicationRunner {
     // Seat labels: "STAGE-B1", "STAGE-B11", "STAGE-B12", etc.
     private void seedStageSeats() {
         //              row   centerEnd  leftOddStart  leftOddEnd  rightEvenStart  rightEvenEnd
-        seedStageRow("A", 0, 11, 21, 10, 26);   // no center; 15 seats
-        seedStageRow("B", 10, 11, 23, 12, 26);   // 25 seats
-        seedStageRow("C", 9, 11, 25, 10, 28);   // 27 seats
+        seedStageRow("A", 0, 11, 21, 10, 20);   // no center; 15 seats
+        seedStageRow("B", 10, 11, 23, 12, 24);   // 25 seats
+        seedStageRow("C", 9, 11, 25, 10, 22);   // 27 seats
         seedStageRow("D", 10, 11, 25, 12, 26);   // 26 seats
-        seedStageRow("E", 9, 11, 27, 10, 26);   // 27 seats
-        seedStageRow("F", 10, 11, 27, 12, 26);   // 27 seats
+        seedStageRow("E", 9, 11, 25, 10, 24);   // 27 seats
+        seedStageRow("F", 10, 11, 27, 12, 28);   // 27 seats
         seedStageRow("G", 9, 11, 27, 10, 26);   // 27 seats
         seedStageRow("H", 10, 11, 27, 12, 28);   // 28 seats
-        seedStageRow("I", 9, 11, 27, 10, 28);   // 28 seats
+        seedStageRow("I", 9, 11, 27, 10, 26);   // 28 seats
         seedStageRow("J", 9, 11, 29, 10, 28);   // 29 seats
         seedStageRow("K", 9, 11, 29, 10, 28);   // 29 seats
-        seedStageRow("L", 8, 11, 29, 10, 28);   // 28 seats
+        seedStageRow("L", 9, 11, 29, 10, 28);   // 28 seats
         seedStageRow("M", 9, 11, 29, 10, 28);   // 29 seats
         seedStageRow("N", 9, 11, 31, 10, 30);   // 31 seats
         seedStageRow("O", 9, 11, 31, 10, 30);   // 31 seats
         seedStageRow("P", 9, 11, 31, 10, 30);   // 31 seats
-        seedStageRow("Q", 9, 11, 31, 10, 30);   // 31 seats
+        seedStageRow("Q", 0, 11, 31, 10, 30);   // 31 seats
         seedStageRow("R", 0, 1, 19, 2, 20);   // no center; odd 1-19 + even 2-20; 20 seats
     }
 
