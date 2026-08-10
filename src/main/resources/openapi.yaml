@@ -355,6 +355,39 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /super-admin/reservations/{id}:
+    delete:
+      tags:
+        - SuperAdmin
+      operationId: deleteReservation
+      summary: Super Admin - delete a reservation; if CONFIRMED, deducts amount from the confirming admin's balance
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Reservation deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Reservation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
   /super-admin/transfers/{id}/confirm:
     post:
       tags:

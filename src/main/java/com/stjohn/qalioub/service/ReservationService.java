@@ -116,6 +116,27 @@ public class ReservationService {
         return reservationRepository.save(reservation);
     }
 
+    @Transactional
+    public void deleteReservation(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + id));
+
+        if (reservation.getStatus() == Reservation.Status.CONFIRMED) {
+            String confirmedBy = reservation.getConfirmedBy();
+            if (confirmedBy != null) {
+                userRepository.findFirstByName(confirmedBy).ifPresent(admin -> {
+                    BigDecimal amount = reservation.getTotalAmount() != null
+                            ? reservation.getTotalAmount()
+                            : ticketPrice.multiply(BigDecimal.valueOf(reservation.getSeats().size()));
+                    admin.setBalance(admin.getBalance().subtract(amount));
+                    userRepository.save(admin);
+                });
+            }
+        }
+
+        reservationRepository.delete(reservation);
+    }
+
     @Transactional(readOnly = true)
     public List<SeatStatusEntry> getAllSeatsWithStatus() {
         Map<Long, Reservation.Status> statusMap = new LinkedHashMap<>();

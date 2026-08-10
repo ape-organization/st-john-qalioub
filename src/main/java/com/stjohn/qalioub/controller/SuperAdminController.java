@@ -1,9 +1,11 @@
 package com.stjohn.qalioub.controller;
 
 import com.stjohn.qalioub.api.SuperAdminApi;
+import com.stjohn.qalioub.api.model.MessageResponse;
 import com.stjohn.qalioub.api.model.TransferDto;
 import com.stjohn.qalioub.entity.Transfer;
 import com.stjohn.qalioub.entity.User;
+import com.stjohn.qalioub.service.ReservationService;
 import com.stjohn.qalioub.service.TransferService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,9 +21,11 @@ import java.util.List;
 public class SuperAdminController implements SuperAdminApi {
 
     private final TransferService transferService;
+    private final ReservationService reservationService;
 
-    public SuperAdminController(TransferService transferService) {
+    public SuperAdminController(TransferService transferService, ReservationService reservationService) {
         this.transferService = transferService;
+        this.reservationService = reservationService;
     }
 
     @Override
@@ -39,6 +43,18 @@ public class SuperAdminController implements SuperAdminApi {
             Transfer transfer = transferService.confirmTransfer(id, superAdmin.getId());
             return ResponseEntity.ok(toTransferDto(transfer));
         } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<MessageResponse> deleteReservation(Long id) {
+        try {
+            reservationService.deleteReservation(id);
+            MessageResponse response = new MessageResponse();
+            response.setMessage("Reservation deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         }
     }
