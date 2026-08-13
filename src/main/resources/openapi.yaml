@@ -222,6 +222,45 @@ paths:
         '403':
           description: Forbidden
 
+  /admin/reservations/{id}/consume-seats:
+    post:
+      tags:
+        - Admin
+      operationId: consumeSeats
+      summary: Admin - mark seats as consumed (checked in) for a confirmed reservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsumeSeatsRequest'
+      responses:
+        '200':
+          description: Seats marked as consumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationDto'
+        '400':
+          description: Reservation not found, not confirmed, or seats not part of the reservation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
   /admin/reservations/{id}/confirm:
     post:
       tags:
@@ -534,8 +573,25 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SeatDto'
+        consumedSeats:
+          type: array
+          description: Seats that have already been checked in / consumed from this reservation
+          items:
+            $ref: '#/components/schemas/SeatDto'
         user:
           $ref: '#/components/schemas/UserDto'
+
+    ConsumeSeatsRequest:
+      type: object
+      required:
+        - seatLabels
+      properties:
+        seatLabels:
+          type: array
+          items:
+            type: string
+          description: Labels of the seats to mark as consumed (checked in)
+          example: ["STAGE-A11", "STAGE-A12"]
 
     ReserveSeatsRequest:
       type: object

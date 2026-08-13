@@ -85,6 +85,40 @@ public class ReservationService {
         return reservationRepository.save(reservation);
     }
 
+    @Transactional
+    public Reservation consumeSeats(Long reservationId, List<String> seatLabels) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + reservationId));
+
+        if (reservation.getStatus() != Reservation.Status.CONFIRMED) {
+            throw new IllegalStateException("Only CONFIRMED reservations can have seats consumed");
+        }
+
+        List<String> uniqueLabels = new ArrayList<>(new LinkedHashSet<>(seatLabels));
+        List<Seat> seatsToConsume = seatRepository.findAllByLabelIn(uniqueLabels);
+        if (seatsToConsume.size() != uniqueLabels.size()) {
+            throw new IllegalArgumentException("One or more seat labels not found");
+        }
+
+        java.util.Set<Long> reservationSeatIds = reservation.getSeats().stream()
+                .map(Seat::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        seatsToConsume.forEach(seat -> {
+            if (!reservationSeatIds.contains(seat.getId())) {
+                throw new IllegalArgumentException("Seat " + seat.getLabel() + " does not belong to this reservation");
+            }
+        });
+
+        java.util.Set<Long> alreadyConsumedIds = reservation.getConsumedSeats().stream()
+                .map(Seat::getId)
+                .collect(java.util.stream.Collectors.toSet());
+        seatsToConsume.stream()
+                .filter(s -> !alreadyConsumedIds.contains(s.getId()))
+                .forEach(reservation.getConsumedSeats()::add);
+
+        return reservationRepository.save(reservation);
+    }
+
     @Transactional(readOnly = true)
     public List<Reservation> getAllReservations() {
         return reservationRepository.findAll();

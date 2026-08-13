@@ -39,6 +39,14 @@ public class Reservation {
     )
     private List<Seat> seats;
 
+    @ManyToMany
+    @JoinTable(
+            name = "reservation_consumed_seats",
+            joinColumns = @JoinColumn(name = "reservation_id"),
+            inverseJoinColumns = @JoinColumn(name = "seat_id")
+    )
+    private List<Seat> consumedSeats = new java.util.ArrayList<>();
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Status status = Status.PENDING;
@@ -104,4 +112,7 @@ public class Reservation {
 
     public String getTicketToken() { return ticketToken; }
     public void setTicketToken(String ticketToken) { this.ticketToken = ticketToken; }
+
+    public List<Seat> getConsumedSeats() { return consumedSeats; }
+    public void setConsumedSeats(List<Seat> consumedSeats) { this.consumedSeats = consumedSeats; }
 }

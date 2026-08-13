@@ -2,6 +2,7 @@ package com.stjohn.qalioub.controller;
 
 import com.stjohn.qalioub.api.AdminApi;
 import com.stjohn.qalioub.api.model.BalanceResponse;
+import com.stjohn.qalioub.api.model.ConsumeSeatsRequest;
 import com.stjohn.qalioub.api.model.CreateTransferRequest;
 import com.stjohn.qalioub.api.model.ReservationDto;
 import com.stjohn.qalioub.api.model.TransferDto;
@@ -35,6 +36,16 @@ public class AdminController implements AdminApi {
                 .map(SeatController::toReservationDto)
                 .toList();
         return ResponseEntity.ok(reservations);
+    }
+
+    @Override
+    public ResponseEntity<ReservationDto> consumeSeats(Long id, ConsumeSeatsRequest consumeSeatsRequest) {
+        try {
+            Reservation reservation = reservationService.consumeSeats(id, consumeSeatsRequest.getSeatLabels());
+            return ResponseEntity.ok(SeatController.toReservationDto(reservation));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @Override

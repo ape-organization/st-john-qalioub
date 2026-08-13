@@ -77,6 +77,9 @@ public class SeatController implements SeatApi {
         dto.setConfirmedBy(reservation.getConfirmedBy());
         dto.setAssignedTo(reservation.getAssignedTo());
         dto.setTicketToken(reservation.getTicketToken());
+        dto.setConsumedSeats(reservation.getConsumedSeats().stream()
+                .map(s -> toSeatDto(s, Reservation.Status.CONFIRMED))
+                .toList());
         return dto;
     }
 }
