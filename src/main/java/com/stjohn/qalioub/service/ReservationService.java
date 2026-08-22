@@ -120,6 +120,14 @@ public class ReservationService {
     }
 
     @Transactional(readOnly = true)
+    public List<String> getConfirmedReservationPhones() {
+        return reservationRepository.findByStatus(Reservation.Status.CONFIRMED).stream()
+                .map(r -> r.getUser().getPhone())
+                .distinct()
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<Reservation> getAllReservations() {
         return reservationRepository.findAll();
     }

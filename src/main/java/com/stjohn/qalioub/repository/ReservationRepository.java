@@ -15,6 +15,9 @@ import java.util.Optional;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
+    @EntityGraph(attributePaths = {"user"})
+    List<Reservation> findByStatus(Reservation.Status status);
+
     @Override
     @EntityGraph(attributePaths = {"user", "seats"})
     List<Reservation> findAll();

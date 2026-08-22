@@ -314,6 +314,26 @@ paths:
         '403':
           description: Forbidden
 
+  /admin/broadcast-sms:
+    post:
+      tags:
+        - Admin
+      operationId: broadcastSmsToConfirmed
+      summary: Admin - send form link SMS to all unique phones with a confirmed reservation
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Messages sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmsBroadcastResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
   /admin/transfers:
     post:
       tags:
@@ -663,3 +683,10 @@ components:
         balance:
           type: number
           description: Current balance
+
+    SmsBroadcastResponse:
+      type: object
+      properties:
+        messagesSent:
+          type: integer
+          description: Number of unique phone numbers that received the SMS

@@ -36,8 +36,12 @@ public class SmsService {
             .build();
 
     public void sendOtp(String toPhone, String otp) {
+        String message = "مسرحية الصارخ \n رمز التحقق: " + otp + "\n صالح لمدة 5 دقائق";
+        sendMessage(toPhone, message);
+    }
+
+    public void sendMessage(String toPhone, String message) {
         toPhone = "+2" + toPhone;
-        String message= "مسرحية الصارخ \n رمز التحقق: " + otp + "\n صالح لمدة 5 دقائق";
 
         WhySmsRequestBody body = new WhySmsRequestBody();
         body.setRecipient(toPhone);

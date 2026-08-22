@@ -5,10 +5,12 @@ import com.stjohn.qalioub.api.model.BalanceResponse;
 import com.stjohn.qalioub.api.model.ConsumeSeatsRequest;
 import com.stjohn.qalioub.api.model.CreateTransferRequest;
 import com.stjohn.qalioub.api.model.ReservationDto;
+import com.stjohn.qalioub.api.model.SmsBroadcastResponse;
 import com.stjohn.qalioub.api.model.TransferDto;
 import com.stjohn.qalioub.entity.Reservation;
 import com.stjohn.qalioub.entity.User;
 import com.stjohn.qalioub.service.ReservationService;
+import com.stjohn.qalioub.service.SmsService;
 import com.stjohn.qalioub.service.TransferService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,10 +26,14 @@ public class AdminController implements AdminApi {
 
     private final ReservationService reservationService;
     private final TransferService transferService;
+    private final SmsService smsService;
 
-    public AdminController(ReservationService reservationService, TransferService transferService) {
+    public AdminController(ReservationService reservationService,
+                           TransferService transferService,
+                           SmsService smsService) {
         this.reservationService = reservationService;
         this.transferService = transferService;
+        this.smsService = smsService;
     }
 
     @Override
@@ -75,6 +81,18 @@ public class AdminController implements AdminApi {
         User admin = getAuthenticatedUser();
         BalanceResponse response = new BalanceResponse();
         response.setBalance(admin.getBalance());
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<SmsBroadcastResponse> broadcastSmsToConfirmed() {
+        String message = "مسرحية الصارخ\nلحجز ركنة يوم العرض\nبرجاء ملئ هذه الاستمارة وقراءة التعليمات جيدا\nhttps://forms.gle/ExQ8WqjhTubtoKNa9";
+
+        List<String> phones = reservationService.getConfirmedReservationPhones();
+        phones.forEach(phone -> smsService.sendMessage(phone, message));
+
+        SmsBroadcastResponse response = new SmsBroadcastResponse();
+        response.setMessagesSent(phones.size());
         return ResponseEntity.ok(response);
     }
 
