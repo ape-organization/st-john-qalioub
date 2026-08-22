@@ -155,15 +155,32 @@ paths:
       tags:
         - Seat
       operationId: reserveSeats
-      summary: Reserve a list of theatre seats with status PENDING for 2 hours
+      summary: Reserve a list of theatre seats with status PENDING for 4 hours
       security:
         - bearerAuth: []
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ReserveSeatsRequest'
+              type: object
+              required:
+                - seatLabels
+              properties:
+                seatLabels:
+                  type: array
+                  items:
+                    type: string
+                  example: ["STAGE-A11", "STAGE-A13"]
+                notes:
+                  type: string
+                  description: Optional notes in Arabic for the reservation
+                drivingLicensePhotos:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Driving licence photos for car parking (one per car, 5 MB max each)
       responses:
         '200':
           description: Seats reserved successfully
@@ -179,6 +196,54 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized
+
+  /user/reservations/{id}/car-parkings:
+    post:
+      tags:
+        - User
+      operationId: addCarParkings
+      summary: Add one or more car parkings to an existing reservation (50 EGP per car)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - drivingLicensePhotos
+              properties:
+                drivingLicensePhotos:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Driving licence photos (one per car, 5 MB max each)
+      responses:
+        '200':
+          description: Car parkings added and payment link updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationDto'
+        '400':
+          description: Invalid files, mismatched arrays, or reservation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - reservation does not belong to this user
 
   /seats/reserved:
     get:
@@ -200,6 +265,27 @@ paths:
         '401':
           description: Unauthorized
 
+  /admin/car-parkings/pdf:
+    get:
+      tags:
+        - Admin
+      operationId: generateCarParkingsPdf
+      summary: Admin - generate a PDF file containing all driving licence photos
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: PDF file with all driving licence photos
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
   /admin/reservations:
     get:
       tags:
@@ -217,6 +303,39 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ReservationDto'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+
+  /admin/reservations/{id}/confirm-car-parkings:
+    post:
+      tags:
+        - Admin
+      operationId: confirmCarParkings
+      summary: Admin - confirm all pending car parkings on a reservation (adds 50 EGP × count to admin balance)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Car parkings confirmed and admin balance updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationDto'
+        '400':
+          description: Reservation not found, not confirmed, or no pending car parkings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized
         '403':
@@ -573,7 +692,7 @@ components:
           format: date-time
         totalAmount:
           type: number
-          description: Total amount charged (ticketPrice × seats count), set on confirmation
+          description: Total amount charged (ticketPrice × seats + 50 × cars), set on confirmation
         notes:
           type: string
           description: Notes in Arabic for the reservation
@@ -598,8 +717,30 @@ components:
           description: Seats that have already been checked in / consumed from this reservation
           items:
             $ref: '#/components/schemas/SeatDto'
+        carParkings:
+          type: array
+          description: Car parking slots attached to this reservation (50 EGP each)
+          items:
+            $ref: '#/components/schemas/CarParkingDto'
         user:
           $ref: '#/components/schemas/UserDto'
+
+    CarParkingDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED]
+          description: PENDING until an admin confirms this parking slot
+        confirmedBy:
+          type: string
+          description: Name of the admin who confirmed this car parking
+        drivingLicensePhotoPath:
+          type: string
+          description: File-system path of the driving licence photo
 
     ConsumeSeatsRequest:
       type: object

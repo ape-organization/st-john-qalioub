@@ -1,8 +1,8 @@
 package com.stjohn.qalioub.service;
 
 import com.stjohn.qalioub.config.AdminProfile;
-import com.stjohn.qalioub.entity.Reservation;
-import com.stjohn.qalioub.entity.Seat;
+import com.stjohn.qalioub.entity.CarParking;
+import com.stjohn.qalioub.entity.Reservation;import com.stjohn.qalioub.entity.Seat;
 import com.stjohn.qalioub.entity.User;
 import com.stjohn.qalioub.repository.ReservationRepository;
 import com.stjohn.qalioub.repository.SeatRepository;
@@ -10,6 +10,7 @@ import com.stjohn.qalioub.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -20,6 +21,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -34,23 +36,30 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final SeatRepository seatRepository;
     private final UserRepository userRepository;
+    private final FileStorageService fileStorageService;
 
     @Value("${app.ticket.price}")
     private BigDecimal ticketPrice;
+
+    @Value("${app.car-parking.fee}")
+    private BigDecimal carParkingFee;
 
     @Value("${app.jwt.secret}")
     private String jwtSecret;
 
     public ReservationService(ReservationRepository reservationRepository,
                               SeatRepository seatRepository,
-                              UserRepository userRepository) {
+                              UserRepository userRepository,
+                              FileStorageService fileStorageService) {
         this.reservationRepository = reservationRepository;
         this.seatRepository = seatRepository;
         this.userRepository = userRepository;
+        this.fileStorageService = fileStorageService;
     }
 
     @Transactional
-    public Reservation reserveSeats(User user, List<String> seatLabels, String notes) {
+    public Reservation reserveSeats(User user, List<String> seatLabels, String notes,
+                                    List<MultipartFile> drivingLicensePhotos) {
         if (seatLabels == null || seatLabels.isEmpty()) {
             throw new IllegalArgumentException("At least one seat must be selected");
         }
@@ -67,6 +76,8 @@ public class ReservationService {
             throw new IllegalStateException("One or more seats are already reserved");
         }
 
+        List<CarParking> carParkings = buildCarParkings(drivingLicensePhotos);
+
         Reservation reservation = new Reservation();
         reservation.setUser(user);
         reservation.setSeats(seats);
@@ -77,10 +88,41 @@ public class ReservationService {
 
         reservation = reservationRepository.save(reservation);
 
+        for (CarParking cp : carParkings) {
+            cp.setReservation(reservation);
+        }
+        reservation.getCarParkings().addAll(carParkings);
+        reservation = reservationRepository.save(reservation);
+
         AdminProfile admin = AdminProfile.values()[(int)(reservation.getId() % AdminProfile.values().length)];
-        BigDecimal amount = ticketPrice.multiply(BigDecimal.valueOf(seats.size()));
+        BigDecimal amount = calculateAmount(seats.size(), reservation.getCarParkings().size());
         reservation.setAssignedTo(admin.getDisplayName());
-        reservation.setPaymentLink(buildPaymentLink(reservation.getId(), admin, amount, user, seats));
+        reservation.setPaymentLink(buildPaymentLink(reservation.getId(), admin, amount, user, seats, reservation.getCarParkings()));
+
+        return reservationRepository.save(reservation);
+    }
+
+    @Transactional
+    public Reservation addCarParkingsToReservation(Long reservationId, User user,
+                                                   List<MultipartFile> drivingLicensePhotos) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + reservationId));
+
+        if (!reservation.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Reservation does not belong to this user");
+        }
+
+        List<CarParking> newCarParkings = buildCarParkings(drivingLicensePhotos);
+        for (CarParking cp : newCarParkings) {
+            cp.setReservation(reservation);
+            reservation.getCarParkings().add(cp);
+        }
+
+        reservation = reservationRepository.save(reservation);
+
+        AdminProfile admin = resolveAdminProfile(reservation.getAssignedTo());
+        BigDecimal amount = calculateAmount(reservation.getSeats().size(), reservation.getCarParkings().size());
+        reservation.setPaymentLink(buildPaymentLink(reservation.getId(), admin, amount, reservation.getUser(), reservation.getSeats(), reservation.getCarParkings()));
 
         return reservationRepository.save(reservation);
     }
@@ -144,17 +186,57 @@ public class ReservationService {
             throw new IllegalStateException("Reservation has expired");
         }
 
-        BigDecimal amount = ticketPrice.multiply(BigDecimal.valueOf(reservation.getSeats().size()));
+        BigDecimal amount = calculateAmount(reservation.getSeats().size(), reservation.getCarParkings().size());
 
         User admin = userRepository.findById(adminId)
                 .orElseThrow(() -> new IllegalArgumentException("Admin not found: " + adminId));
         admin.setBalance(admin.getBalance().add(amount));
         userRepository.save(admin);
 
+        reservation.getCarParkings().forEach(cp -> {
+            cp.setStatus(CarParking.Status.CONFIRMED);
+            cp.setConfirmedBy(admin.getName());
+        });
+
         reservation.setTotalAmount(amount);
         reservation.setStatus(Reservation.Status.CONFIRMED);
         reservation.setConfirmedBy(admin.getName());
         reservation.setTicketToken(generateTicketToken(reservation.getId(), reservation.getUser().getId()));
+        return reservationRepository.save(reservation);
+    }
+
+    @Transactional
+    public Reservation confirmCarParkings(Long reservationId, Long adminId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new IllegalArgumentException("Reservation not found: " + reservationId));
+
+        if (reservation.getStatus() != Reservation.Status.CONFIRMED) {
+            throw new IllegalStateException("Reservation must be CONFIRMED before confirming car parkings separately");
+        }
+
+        List<CarParking> pending = reservation.getCarParkings().stream()
+                .filter(cp -> cp.getStatus() == CarParking.Status.PENDING)
+                .toList();
+
+        if (pending.isEmpty()) {
+            throw new IllegalStateException("No pending car parkings found on this reservation");
+        }
+
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new IllegalArgumentException("Admin not found: " + adminId));
+
+        BigDecimal amount = carParkingFee.multiply(BigDecimal.valueOf(pending.size()));
+        admin.setBalance(admin.getBalance().add(amount));
+        userRepository.save(admin);
+
+        pending.forEach(cp -> {
+            cp.setStatus(CarParking.Status.CONFIRMED);
+            cp.setConfirmedBy(admin.getName());
+        });
+
+        BigDecimal currentTotal = reservation.getTotalAmount() != null ? reservation.getTotalAmount() : BigDecimal.ZERO;
+        reservation.setTotalAmount(currentTotal.add(amount));
+
         return reservationRepository.save(reservation);
     }
 
@@ -169,7 +251,7 @@ public class ReservationService {
                 userRepository.findFirstByName(confirmedBy).ifPresent(admin -> {
                     BigDecimal amount = reservation.getTotalAmount() != null
                             ? reservation.getTotalAmount()
-                            : ticketPrice.multiply(BigDecimal.valueOf(reservation.getSeats().size()));
+                            : calculateAmount(reservation.getSeats().size(), reservation.getCarParkings().size());
                     admin.setBalance(admin.getBalance().subtract(amount));
                     userRepository.save(admin);
                 });
@@ -205,6 +287,37 @@ public class ReservationService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid ticket token: " + token));
     }
 
+    // ── helpers ─────────────────────────────────────────────────────────────
+
+    private List<CarParking> buildCarParkings(List<MultipartFile> drivingLicensePhotos) {
+        if (drivingLicensePhotos == null || drivingLicensePhotos.isEmpty()) return new ArrayList<>();
+
+        List<CarParking> result = new ArrayList<>();
+        for (MultipartFile licenseFile : drivingLicensePhotos) {
+            String licensePath = fileStorageService.saveFile(licenseFile, "driving-licenses");
+
+            CarParking cp = new CarParking();
+            cp.setDrivingLicensePhotoPath(licensePath);
+            result.add(cp);
+        }
+        return result;
+    }
+
+    private BigDecimal calculateAmount(int seatCount, int carCount) {
+        return ticketPrice.multiply(BigDecimal.valueOf(seatCount))
+                .add(carParkingFee.multiply(BigDecimal.valueOf(carCount)));
+    }
+
+    private AdminProfile resolveAdminProfile(String displayName) {
+        if (displayName != null) {
+            return Arrays.stream(AdminProfile.values())
+                    .filter(a -> a.getDisplayName().equals(displayName))
+                    .findFirst()
+                    .orElse(null);
+        }
+        return null;
+    }
+
     private String generateTicketToken(Long reservationId, Long userId) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
@@ -217,17 +330,31 @@ public class ReservationService {
         }
     }
 
-    private String buildPaymentLink(Long reservationId, AdminProfile admin, BigDecimal amount, User user, List<Seat> seats) {
+    private String buildPaymentLink(Long reservationId, AdminProfile admin, BigDecimal amount,
+                                    User user, List<Seat> seats, List<CarParking> carParkings) {
         String seatLabels = seats.stream().map(Seat::getLabel).collect(java.util.stream.Collectors.joining(", "));
+
+        String carLine = "";
+        if (carParkings != null && !carParkings.isEmpty()) {
+            BigDecimal carTotal = carParkingFee.multiply(BigDecimal.valueOf(carParkings.size()));
+            carLine = String.format(
+                "\nوعدد %d عربية في الباركينج بسعر %s جنيه",
+                carParkings.size(),
+                carTotal.stripTrailingZeros().toPlainString()
+            );
+        }
+
         String message = String.format(
-            "هاي انا\n%s\nبكلمك عشان احجز مسرحية الصارخ عاوز ابعتلك دلوقتي %s جنيه\nعشان احجز عدد %d كرسي\n(%s)\nحجز رقم %d\nشكرا",
+            "هاي انا\n%s\nبكلمك عشان احجز مسرحية الصارخ عاوز ابعتلك دلوقتي %s جنيه\nعشان احجز عدد %d كرسي\n(%s)%s\nحجز رقم %d\nشكرا",
             user.getName(),
             amount.stripTrailingZeros().toPlainString(),
             seats.size(),
             seatLabels,
+            carLine,
             reservationId
         );
         String encoded = URLEncoder.encode(message, StandardCharsets.UTF_8);
         return "https://wa.me/" + admin.getWhatsappPhone() + "?text=" + encoded;
     }
 }
+

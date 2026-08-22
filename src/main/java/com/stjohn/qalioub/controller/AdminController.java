@@ -9,9 +9,14 @@ import com.stjohn.qalioub.api.model.SmsBroadcastResponse;
 import com.stjohn.qalioub.api.model.TransferDto;
 import com.stjohn.qalioub.entity.Reservation;
 import com.stjohn.qalioub.entity.User;
+import com.stjohn.qalioub.service.PdfService;
 import com.stjohn.qalioub.service.ReservationService;
 import com.stjohn.qalioub.service.SmsService;
 import com.stjohn.qalioub.service.TransferService;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,13 +32,25 @@ public class AdminController implements AdminApi {
     private final ReservationService reservationService;
     private final TransferService transferService;
     private final SmsService smsService;
+    private final PdfService pdfService;
 
-    public AdminController(ReservationService reservationService,
-                           TransferService transferService,
-                           SmsService smsService) {
+    public AdminController(ReservationService reservationService, TransferService transferService,  SmsService smsService, PdfService pdfService) {
         this.reservationService = reservationService;
         this.transferService = transferService;
         this.smsService = smsService;
+        this.pdfService = pdfService;
+    }
+
+    @Override
+    public ResponseEntity<org.springframework.core.io.Resource> generateCarParkingsPdf() {
+        byte[] pdf = pdfService.generateCarParkingsPdf();
+        ByteArrayResource resource = new ByteArrayResource(pdf);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .contentLength(pdf.length)
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment().filename("car-parkings.pdf").build().toString())
+                .body(resource);
     }
 
     @Override
@@ -48,6 +65,17 @@ public class AdminController implements AdminApi {
     public ResponseEntity<ReservationDto> consumeSeats(Long id, ConsumeSeatsRequest consumeSeatsRequest) {
         try {
             Reservation reservation = reservationService.consumeSeats(id, consumeSeatsRequest.getSeatLabels());
+            return ResponseEntity.ok(SeatController.toReservationDto(reservation));
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @Override
+    public ResponseEntity<ReservationDto> confirmCarParkings(Long id) {
+        User admin = getAuthenticatedUser();
+        try {
+            Reservation reservation = reservationService.confirmCarParkings(id, admin.getId());
             return ResponseEntity.ok(SeatController.toReservationDto(reservation));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().build();

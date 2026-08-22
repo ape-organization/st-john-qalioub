@@ -4,12 +4,14 @@ import com.stjohn.qalioub.api.UserApi;
 import com.stjohn.qalioub.api.model.ReservationDto;
 import com.stjohn.qalioub.api.model.UpdateNameRequest;
 import com.stjohn.qalioub.api.model.UserDto;
+import com.stjohn.qalioub.entity.Reservation;
 import com.stjohn.qalioub.entity.User;
 import com.stjohn.qalioub.service.AuthService;
 import com.stjohn.qalioub.service.ReservationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -33,7 +35,6 @@ public class UserController implements UserApi {
 
     @Override
     public ResponseEntity<UserDto> updateName(UpdateNameRequest updateNameRequest) {
-        // The authenticated user is injected by Spring Security via JwtAuthFilter
         User principal = getAuthenticatedUser();
         User updated = authService.updateName(principal.getPhone(), updateNameRequest.getName());
         return ResponseEntity.ok(AuthController.toDto(updated));
@@ -48,6 +49,21 @@ public class UserController implements UserApi {
         return ResponseEntity.ok(reservations);
     }
 
+    @Override
+    public ResponseEntity<ReservationDto> addCarParkings(Long id,
+                                                         List<MultipartFile> drivingLicensePhotos) {
+        User principal = getAuthenticatedUser();
+        try {
+            Reservation reservation = reservationService.addCarParkingsToReservation(
+                    id, principal, drivingLicensePhotos);
+            return ResponseEntity.ok(SeatController.toReservationDto(reservation));
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     private User getAuthenticatedUser() {
         org.springframework.security.core.Authentication auth =
                 org.springframework.security.core.context.SecurityContextHolder
@@ -55,3 +71,4 @@ public class UserController implements UserApi {
         return (User) auth.getPrincipal();
     }
 }
+

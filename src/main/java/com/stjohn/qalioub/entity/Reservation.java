@@ -1,5 +1,6 @@
 package com.stjohn.qalioub.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,10 +12,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -75,6 +78,9 @@ public class Reservation {
     @Column(nullable = true, unique = true, length = 64)
     private String ticketToken;
 
+    @OneToMany(mappedBy = "reservation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CarParking> carParkings = new ArrayList<>();
+
     public Reservation() {}
 
     public Long getId() { return id; }
@@ -115,4 +121,7 @@ public class Reservation {
 
     public List<Seat> getConsumedSeats() { return consumedSeats; }
     public void setConsumedSeats(List<Seat> consumedSeats) { this.consumedSeats = consumedSeats; }
+
+    public List<CarParking> getCarParkings() { return carParkings; }
+    public void setCarParkings(List<CarParking> carParkings) { this.carParkings = carParkings; }
 }
